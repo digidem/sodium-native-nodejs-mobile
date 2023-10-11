@@ -1,17 +1,6 @@
-# nodejs-mobile-prebuilds-template
+# sodium-native-nodejs-mobile
 
-Template repository for building and publishing [NodeJS Mobile](https://github.com/nodejs-mobile/nodejs-mobile) prebuilds for a specific module
-
-## Getting started
-
-1. Create a new repository from this template using the GitHub UI. Alternatively can fork it.
-2. Update the environment variables defined in the [workflow file](./.github/workflows/prebuilds.yml) based on your needs:
-
-   - `NODE_VERSION`: the Node version to use for building (you most likely do not need to change this)
-   - `MODULE_NAME`: the name of the module that you're building prebuilds for
-   - `MODULE_VERSION`: the package version of the module that your'e building (you most likely do not need to change this)
-
-3. Remove the [`Getting started`](#getting-started) section of this README! (since it's specific to the template repo)
+[NodeJS Mobile](https://github.com/nodejs-mobile/nodejs-mobile) prebuilds for [`sodium-native`](https://github.com/sodium-friends/sodium-native)
 
 ## Working locally
 
@@ -25,7 +14,7 @@ Template repository for building and publishing [NodeJS Mobile](https://github.c
 
 Should be clear enough to follow the workflow steps but in summary:
 
-1. Download the npm tarball package and unzip e.g. `npm pack foo@latest | xargs tar -zxvf` (replace `foo@latest` with the relevant package name and version)
+1. Download the npm tarball package and unzip e.g. `npm pack sodium-native@latest | xargs tar -zxvf`
 
 2. Navigate to unzipped directory and run `npx prebuild-for-nodejs-mobile TARGET`, where `TARGET` is an accepted value from the [`prebuild-for-nodejs-mobile`](https://github.com/staltz/prebuild-for-nodejs-mobile) CLI
    - if you don't have the `ANDROID_NDK_PATH` environment variable exported, you may run the command like so: `ANDROID_NDK_HOME=/path/to/ndk npx prebuild-for-nodejs-mobile TARGET`

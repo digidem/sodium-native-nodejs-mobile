@@ -8,7 +8,7 @@ on:
 
 env:
   NODE_VERSION: 16
-  MODULE_NAME: "" # UPDATE THIS
+  MODULE_NAME: "sodium-native"
   MODULE_VERSION: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || 'latest' }}
 
 jobs:
@@ -21,10 +21,6 @@ jobs:
         target: ["android-arm", "android-arm64", "android-x64"]
 
     steps:
-      - name: Assert env.MODULE_NAME is set
-        if: ${{ env.MODULE_NAME == '' }}
-        run: echo "env.MODULE_NAME must be set" && exit 1
-
       - uses: actions/checkout@v4
 
       - name: Setup NDK
