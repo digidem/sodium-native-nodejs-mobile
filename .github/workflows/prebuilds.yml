@@ -1,0 +1,96 @@
+name: Generate prebuilds
+
+on:
+  push:
+    branches: [main]
+    tags:
+      - "*"
+
+env:
+  NODE_VERSION: 16
+  MODULE_NAME: "" # UPDATE THIS
+  MODULE_VERSION: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || 'latest' }}
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        target: ["android-arm", "android-arm64", "android-x64"]
+
+    steps:
+      - name: Assert env.MODULE_NAME is set
+        if: ${{ env.MODULE_NAME == '' }}
+        run: echo "env.MODULE_NAME must be set" && exit 1
+
+      - uses: actions/checkout@v4
+
+      - name: Setup NDK
+        uses: nttld/setup-ndk@v1
+        id: setup-ndk
+        with:
+          ndk-version: r24 # https://github.com/android/ndk/wiki/Unsupported-Downloads#r24
+          add-to-path: false
+
+      - name: Use Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Download npm package and unpack
+        run: npm pack ${{ env.MODULE_NAME }}@${{ env.MODULE_VERSION }} | xargs tar -zxvf
+
+      - name: Install deps for package
+        working-directory: ./package
+        run: npm install
+
+      - name: Generate prebuild for ${{ matrix.target }}
+        working-directory: ./package
+        env:
+          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
+        run: npx --yes prebuild-for-nodejs-mobile@1.2.1 ${{ matrix.target }}
+
+      - name: Upload original prebuild artifacts # mostly for debugging purposes
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.target }}
+          path: ./package/prebuilds/${{ matrix.target }}
+
+      # The below steps are needed for the release job
+
+      - name: Set NODE_ABI env var
+        run: echo "NODE_ABI=$(node -e 'console.log(process.versions.modules)')" >> "$GITHUB_ENV"
+
+      - name: Derive release artifact name
+        id: artifact-name
+        run: echo "NAME=${{ env.MODULE_NAME }}-${{ env.MODULE_VERSION }}-node-${{ env.NODE_ABI }}-${{ matrix.TARGET }}" >> "$GITHUB_OUTPUT"
+
+      - name: Prepare release artifact
+        run: tar -czf ${{ steps.artifact-name.outputs.NAME }}.tar.gz --directory=./package/prebuilds/${{ matrix.TARGET }} .
+
+      - name: Upload release artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ steps.artifact-name.outputs.NAME }}
+          path: ./${{ steps.artifact-name.outputs.NAME }}.tar.gz
+
+  release:
+    if: ${{ startsWith(github.ref, 'refs/tags') }}
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+
+      - name: Create GitHub Release
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: "${{ env.MODULE_NAME }}-${{ env.MODULE_VERSION }}-*/*.tar.gz"
+          artifactErrorsFailBuild: true
+          allowUpdates: true
+          replacesArtifacts: true
