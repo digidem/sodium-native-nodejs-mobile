@@ -18,8 +18,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target: ["android-arm", "android-arm64", "android-x64"]
-
+        arch: ["arm", "arm64", "x64"]
+        platform: ["android"]
+    name: ${{ matrix.platform }}-${{ matrix.arch }}
     steps:
       - name: Assert env.MODULE_VERSION is set
         if: ${{ env.MODULE_VERSION == '' }}
@@ -31,7 +32,7 @@ jobs:
         uses: nttld/setup-ndk@v1
         id: setup-ndk
         with:
-          ndk-version: r24 # https://github.com/android/ndk/wiki/Unsupported-Downloads#r24
+          ndk-version: r26 # https://github.com/android/ndk/wiki/Unsupported-Downloads#r24
           add-to-path: false
 
       - name: Use Node.js ${{ env.NODE_VERSION }}
@@ -42,30 +43,48 @@ jobs:
       - name: Download npm package and unpack
         run: npm pack ${{ env.MODULE_NAME }}@${{ env.MODULE_VERSION }} | xargs tar -zxvf
 
+      - run: npm install -g bare-make
+
       - name: Install deps for package
         working-directory: ./package
         run: npm install
 
-      - name: Generate prebuild for ${{ matrix.target }}
+      - name: Install patched cmake-napi
+        working-directory: ./package
+        run: npm install cmake-napi@github:digidem/cmake-napi-nodejs-mobile
+
+      - name: Generate
         working-directory: ./package
         env:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
-        run: npx --yes prebuild-for-nodejs-mobile@18.17.7 ${{ matrix.target }} --verbose
+        run: bare-make generate --platform ${{ matrix.platform }} --arch ${{ matrix.arch }}
+
+      - name: Build
+        working-directory: ./package
+        run: bare-make build
+
+      - name: Install
+        working-directory: ./package
+        run: bare-make install
+
+      - name: Define target
+        id: define_target
+        run: echo "target=${{ matrix.platform }}-${{ matrix.arch }}" >> "$GITHUB_OUTPUT"
 
       - name: Upload original prebuild artifacts # mostly for debugging purposes
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ matrix.target }}
-          path: ./package/prebuilds/${{ matrix.target }}
+          name: ${{ steps.define_target.outputs.target }}
+          path: ./package/prebuilds/${{ steps.define_target.outputs.target }}
 
       # The below steps are needed for the release job
 
       - name: Derive release artifact name
         id: artifact-name
-        run: echo "NAME=${{ env.MODULE_NAME }}-${{ env.MODULE_VERSION }}-${{ matrix.TARGET }}" >> "$GITHUB_OUTPUT"
+        run: echo "NAME=${{ env.MODULE_NAME }}-${{ env.MODULE_VERSION }}-${{ steps.define_target.outputs.target }}" >> "$GITHUB_OUTPUT"
 
       - name: Prepare release artifact
-        run: tar -czf ${{ steps.artifact-name.outputs.NAME }}.tar.gz --directory=./package/prebuilds/${{ matrix.TARGET }} .
+        run: tar -czf ${{ steps.artifact-name.outputs.NAME }}.tar.gz --directory=./package/prebuilds/${{ steps.define_target.outputs.target }} .
 
       - name: Upload release artifact
         uses: actions/upload-artifact@v3
