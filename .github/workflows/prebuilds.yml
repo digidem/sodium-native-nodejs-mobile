@@ -20,7 +20,7 @@ jobs:
         arch: [arm64, x64, arm]
     uses: digidem/nodejs-mobile-prebuilds/.github/workflows/prebuild.yml@main
     with:
-      module_name: ${{ env.MODULE_NAME }}
+      module_name: "sodium-native"
       module_version: ${{ inputs.module_version }}
       platform: ${{ matrix.platform }}
       arch: ${{ matrix.arch }}
