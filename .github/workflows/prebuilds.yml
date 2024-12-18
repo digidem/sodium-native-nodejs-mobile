@@ -4,13 +4,15 @@ on:
   workflow_dispatch:
     inputs:
       module_version:
-        description: 'Module version'
+        description: "Module version"
         required: true
-        default: 'latest'
-
-env:
-  NODE_VERSION: 18
-  MODULE_NAME: "sodium-native"
+        default: "latest"
+        type: string
+      publish_release:
+        description: "Publish release"
+        required: false
+        default: true
+        type: boolean
 
 jobs:
   build:
@@ -26,29 +28,8 @@ jobs:
       arch: ${{ matrix.arch }}
 
   release:
+    if: ${{ inputs.publish_release }}
     needs: build
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - name: Download artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: prebuilds
-
-      - run: |
-          mkdir -p artifacts
-          for folder in prebuilds/*/; do
-            folder_name=$(basename "$folder")
-            tar -czf "artifacts/${{ env.MODULE_NAME }}-${{ needs.build.outputs.version }}-${folder_name}.tar.gz" -C "prebuilds" "$folder_name"
-          done
-
-      - run: ls -laR
-
-      - name: Create GitHub Release
-        uses: ncipollo/release-action@v1
-        with:
-          artifacts: "artifacts/*"
-          artifactErrorsFailBuild: true
-          allowUpdates: true
-          replacesArtifacts: true
-          tag: ${{ needs.build.outputs.version }}
+    uses: digidem/nodejs-mobile-prebuilds/.github/workflows/release.yml@main
+    with:
+      module_version: ${{ needs.build.outputs.module_version }}
