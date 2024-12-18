@@ -7,24 +7,49 @@
 ### Requirements
 
 - Node 18
-- Android NDK 24.0.8215888
-  - (optional) exported `ANDROID_NDK_PATH` environment variable
+- Android NDK (CI uses version 27.2.12479018)
+  - (optional) exported `ANDROID_NDK_HOME` environment variable
 
 ### General steps
 
-Should be clear enough to follow the workflow steps but in summary:
+Should be clear enough to follow the [reusable workflow steps](https://github.com/digidem/nodejs-mobile-bare-prebuilds/blob/main/.github/workflows/prebuild.yml) but in summary:
 
-1. Download the npm tarball package and unzip e.g. `npm pack sodium-native@latest | xargs tar -zxvf`
-
-2. Navigate to unzipped directory and run `npx prebuild-for-nodejs-mobile TARGET`, where `TARGET` is an accepted value from the [`prebuild-for-nodejs-mobile`](https://github.com/staltz/prebuild-for-nodejs-mobile) CLI
-   - if you don't have the `ANDROID_NDK_PATH` environment variable exported, you may run the command like so: `ANDROID_NDK_HOME=/path/to/ndk npx prebuild-for-nodejs-mobile TARGET`
+1. Download the npm tarball package and unzip e.g.
+    ```
+    npm pack sodium-native@latest | xargs tar -zxvf
+    ```
+2. Navigate to unzipped directory:
+   ```
+   cd package
+   ```
+3. Install dependencies:
+   ```
+   npm install
+   ```
+4. Install [patched `cmake-napi`](https://github.com/digidem/cmake-napi-nodejs-mobile):
+   ```
+   npm install cmake-napi@github:digidem/cmake-napi-nodejs-mobile
+   ```
+5. Install [bare-make](https://github.com/holepunchto/bare-make) globally:
+   ```
+   npm install -g bare-make@latest
+   ```
+6. Generate, build and install:
+   ```
+   bare-make generate --platform android --arch arm64
+   bare-make build
+   bare-make install
+   ```
 
 ## Creating a release
 
-1. Create a git tag that matches the version of the module you want to create prebuilds for e.g. `git tag 1.0.0`
+1. Navigate to the [Generate Prebuilds workflow](https://github.com/digidem/sodium-native-nodejs-mobile/actions/workflows/prebuilds.yml)
+2. Manually dispatch the worflow with the version you want to build, ensuring that "Publish Release" is checked.
 
-2. Push the tag to the remote e.g. `git push origin 1.0.0`
+## Contributing
 
-3. The workflow uses the tag version to create the prebuilds and then publish a release with those prebuilds.
+We welcome contributions to this repository. If you have an idea for a new feature or have found a bug, please open an issue or submit a pull request.
 
-4. The relevant artifacts will show up in GitHub Releases. Each artifact is a tarball containing the `.node` files for the target-specific prebuild.
+## License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for more details.
