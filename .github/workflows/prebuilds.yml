@@ -42,10 +42,12 @@ jobs:
             tar -czf "$artifacts/${{ env.MODULE_NAME }}-${{ needs.build.outputs.version }}-${folder_name}.tar.gz" -C "prebuilds" "$folder_name"
           done
 
+      - run: ls -laR
+
       - name: Create GitHub Release
         uses: ncipollo/release-action@v1
         with:
-          artifacts: "prebuilds/*"
+          artifacts: "artifacts/*"
           artifactErrorsFailBuild: true
           allowUpdates: true
           replacesArtifacts: true
