@@ -35,7 +35,12 @@ jobs:
         with:
           path: prebuilds
 
-      - run: ls -alR prebuilds
+      - run: |
+          mkdir -p artifacts
+          for folder in prebuilds/*/; do
+            folder_name=$(basename "$folder")
+            tar -czf "$artifacts/${{ env.MODULE_NAME }}-${{ needs.build.outputs.version }}-${folder_name}.tar.gz" -C "sodium-native" "$folder_name"
+          done
 
       - name: Create GitHub Release
         uses: ncipollo/release-action@v1
