@@ -1,6 +1,6 @@
 # sodium-native-nodejs-mobile
 
-[NodeJS Mobile](https://github.com/nodejs-mobile/nodejs-mobile) prebuilds for [`sodium-native`](https://github.com/sodium-friends/sodium-native)
+[NodeJS Mobile](https://github.com/nodejs-mobile/nodejs-mobile) prebuilds for [`sodium-native`](https://github.com/holepunchto/sodium-native)
 
 ## Working locally
 
