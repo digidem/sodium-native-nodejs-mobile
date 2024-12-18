@@ -30,15 +30,18 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
-
       - name: Download artifacts
         uses: actions/download-artifact@v4
+        with:
+          path: prebuilds
+
+      - run: ls -alR prebuilds
 
       - name: Create GitHub Release
         uses: ncipollo/release-action@v1
         with:
-          artifacts: "${{ env.MODULE_NAME }}-${{ needs.build.outputs.version }}-*/*.tar.gz"
+          artifacts: "prebuilds/*"
           artifactErrorsFailBuild: true
           allowUpdates: true
           replacesArtifacts: true
+          tag: ${{ needs.build.outputs.version }}
