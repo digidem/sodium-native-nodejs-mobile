@@ -1,11 +1,20 @@
-name: Generate prebuilds
+name: Build, test, and release prebuilds
+
+# This workflow builds nodejs-mobile prebuilds for an npm-published native
+# module across all standard targets, tests them on an Android emulator and
+# iOS simulator, and publishes a GitHub Release with the artifacts.
 
 on:
   workflow_dispatch:
     inputs:
-      module_version:
-        description: "Module version"
+      module_name:
+        description: "npm module name"
         required: true
+        type: string
+        default: "sodium-native"
+      module_version:
+        description: "Exact version or dist-tag"
+        required: false
         default: "latest"
         type: string
       publish_release:
@@ -16,20 +25,28 @@ on:
 
 jobs:
   build:
-    strategy:
-      matrix:
-        platform: [android]
-        arch: [arm64, x64, arm]
-    uses: digidem/nodejs-mobile-bare-prebuilds/.github/workflows/prebuild.yml@main
+    uses: digidem/nodejs-mobile-bare-prebuilds/.github/workflows/prebuild-all.yml@main
     with:
-      module_name: "sodium-native"
+      module_name: ${{ inputs.module_name }}
       module_version: ${{ inputs.module_version }}
-      platform: ${{ matrix.platform }}
-      arch: ${{ matrix.arch }}
+
+  test-android:
+    needs: build
+    uses: digidem/nodejs-mobile-bare-prebuilds/.github/workflows/test-android.yml@main
+    with:
+      module_spec: ${{ needs.build.outputs.module_spec }}
+
+  test-ios:
+    needs: build
+    uses: digidem/nodejs-mobile-bare-prebuilds/.github/workflows/test-ios.yml@main
+    with:
+      module_spec: ${{ needs.build.outputs.module_spec }}
 
   release:
     if: ${{ inputs.publish_release }}
-    needs: build
+    needs: [ build, test-android, test-ios ]
+    permissions:
+      contents: write
     uses: digidem/nodejs-mobile-bare-prebuilds/.github/workflows/release.yml@main
     with:
-      module_version: ${{ needs.build.outputs.module_version }}
+      module_spec: ${{ needs.build.outputs.module_spec }}
