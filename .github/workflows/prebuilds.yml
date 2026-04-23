@@ -25,30 +25,28 @@ on:
 
 jobs:
   build:
-    uses: digidem/nodejs-mobile-bare-prebuilds/.github/workflows/prebuild-all.yml@main
+    uses: digidem/nodejs-mobile-bare-prebuilds/.github/workflows/prebuild-all.yml@v2
     with:
       module_name: ${{ inputs.module_name }}
       module_version: ${{ inputs.module_version }}
 
   test-android:
     needs: build
-    uses: digidem/nodejs-mobile-bare-prebuilds/.github/workflows/test-android.yml@main
+    uses: digidem/nodejs-mobile-bare-prebuilds/.github/workflows/test-android.yml@v2
     with:
       module_spec: ${{ needs.build.outputs.module_spec }}
-      test_runner: "module"
 
   test-ios:
     needs: build
-    uses: digidem/nodejs-mobile-bare-prebuilds/.github/workflows/test-ios.yml@main
+    uses: digidem/nodejs-mobile-bare-prebuilds/.github/workflows/test-ios.yml@v2
     with:
       module_spec: ${{ needs.build.outputs.module_spec }}
-      test_runner: "module"
 
   release:
     if: ${{ inputs.publish_release }}
     needs: [ build, test-android, test-ios ]
     permissions:
       contents: write
-    uses: digidem/nodejs-mobile-bare-prebuilds/.github/workflows/release.yml@main
+    uses: digidem/nodejs-mobile-bare-prebuilds/.github/workflows/release.yml@v2
     with:
       module_spec: ${{ needs.build.outputs.module_spec }}
