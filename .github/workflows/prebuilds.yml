@@ -35,28 +35,12 @@ jobs:
     uses: digidem/nodejs-mobile-bare-prebuilds/.github/workflows/test-android.yml@v2
     with:
       module_spec: ${{ needs.build.outputs.module_spec }}
-      test_runner: "module"
-      # This test file uses child_process.fork() which is not supported on
-      # embedded node, which is how these tests run on Android.
-      test_exclude: |
-        memory.js
-        all.js
-      git_repo_slug: ${{ needs.build.outputs.git_repo_slug }}
-      git_ref: ${{ needs.build.outputs.git_ref }}
 
   test-ios:
     needs: build
     uses: digidem/nodejs-mobile-bare-prebuilds/.github/workflows/test-ios.yml@v2
     with:
       module_spec: ${{ needs.build.outputs.module_spec }}
-      test_runner: "module"
-      # This test file uses child_process.fork() which is not supported on
-      # embedded node, which is how these tests run on iOS.
-      test_exclude: |
-        memory.js
-        all.js
-      git_repo_slug: ${{ needs.build.outputs.git_repo_slug }}
-      git_ref: ${{ needs.build.outputs.git_ref }}
 
   release:
     if: ${{ inputs.publish_release }}
