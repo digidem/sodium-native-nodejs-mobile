@@ -36,9 +36,9 @@ jobs:
     with:
       module_spec: ${{ needs.build.outputs.module_spec }}
       test_runner: "module"
-      # Upstream test/ overlay: npm tarballs exclude test/, so the test
-      # workflow checks out the upstream repo at the commit the tarball
-      # was published from (resolved in prebuild-all.yml's resolve job).
+      # This test file uses child_process.fork() which is not supported on
+      # embedded node, which is how these tests run on Android.
+      test_exclude: "memory.js"
       git_repo_slug: ${{ needs.build.outputs.git_repo_slug }}
       git_ref: ${{ needs.build.outputs.git_ref }}
 
@@ -48,6 +48,9 @@ jobs:
     with:
       module_spec: ${{ needs.build.outputs.module_spec }}
       test_runner: "module"
+      # This test file uses child_process.fork() which is not supported on
+      # embedded node, which is how these tests run on iOS.
+      test_exclude: "memory.js"
       git_repo_slug: ${{ needs.build.outputs.git_repo_slug }}
       git_ref: ${{ needs.build.outputs.git_ref }}
 
