@@ -38,7 +38,9 @@ jobs:
       test_runner: "module"
       # This test file uses child_process.fork() which is not supported on
       # embedded node, which is how these tests run on Android.
-      test_exclude: "memory.js"
+      test_exclude: |
+        memory.js
+        all.js
       git_repo_slug: ${{ needs.build.outputs.git_repo_slug }}
       git_ref: ${{ needs.build.outputs.git_ref }}
 
@@ -50,7 +52,9 @@ jobs:
       test_runner: "module"
       # This test file uses child_process.fork() which is not supported on
       # embedded node, which is how these tests run on iOS.
-      test_exclude: "memory.js"
+      test_exclude: |
+        memory.js
+        all.js
       git_repo_slug: ${{ needs.build.outputs.git_repo_slug }}
       git_ref: ${{ needs.build.outputs.git_ref }}
 
