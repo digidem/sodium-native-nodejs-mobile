@@ -1,0 +1,50 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 0d11973..afdbb84 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -218,6 +218,7 @@ target_sources(
+     extensions/tweak/tweak.h
+     extensions/pbkdf2/pbkdf2.c
+     extensions/pbkdf2/pbkdf2.h
++    extensions/snm-exports.c
+ )
+ 
+ target_link_libraries(
+diff --git a/extensions/snm-exports.c b/extensions/snm-exports.c
+new file mode 100644
+index 0000000..0fbd64a
+--- /dev/null
++++ b/extensions/snm-exports.c
+@@ -0,0 +1,32 @@
++#include <sodium.h>
++
++// Exported so host code (Kotlin/Swift) can dlsym libsodium's pwhash out of
++// this addon: libsodium itself is compiled -fvisibility=hidden, so only
++// symbols defined in this object library reach .dynsym.
++#define SNM_EXPORT __attribute__((visibility("default")))
++
++SNM_EXPORT int snm_sodium_init(void) {
++  return sodium_init();
++}
++
++SNM_EXPORT int snm_crypto_pwhash(unsigned char *out, unsigned long long outlen,
++                                 const char *passwd,
++                                 unsigned long long passwdlen,
++                                 const unsigned char *salt,
++                                 unsigned long long opslimit, size_t memlimit,
++                                 int alg) {
++  return crypto_pwhash(out, outlen, passwd, passwdlen, salt, opslimit, memlimit,
++                       alg);
++}
++
++SNM_EXPORT size_t snm_crypto_pwhash_opslimit_interactive(void) {
++  return crypto_pwhash_opslimit_interactive();
++}
++
++SNM_EXPORT size_t snm_crypto_pwhash_memlimit_interactive(void) {
++  return crypto_pwhash_memlimit_interactive();
++}
++
++SNM_EXPORT int snm_crypto_pwhash_alg_default(void) {
++  return crypto_pwhash_alg_default();
++}

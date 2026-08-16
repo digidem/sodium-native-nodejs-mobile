@@ -41,6 +41,12 @@ Should be clear enough to follow the [reusable workflow steps](https://github.co
    bare-make install
    ```
 
+## Patches
+
+Files in `patches/` follow the [`patch-package`](https://github.com/ds300/patch-package) naming convention — `sodium-native+<version>.patch` — and the build workflow applies the one matching the version being built with `patch -p1`, right after unpacking the npm tarball and before installing dependencies. To reproduce a build locally, apply the matching patch from inside the unzipped `package` directory between steps 2 and 3 above. Note that the workflow fails if `patches/` holds patches for other versions but none for the version being built, so bumping the version means refreshing the patch too.
+
+`sodium-native+5.1.0.patch` adds `extensions/snm-exports.c`, five tiny wrapper functions (`snm_sodium_init`, `snm_crypto_pwhash`, and the three pwhash parameter getters) that let host app code call libsodium's password hashing directly via `dlopen`/`dlsym`. They are needed because libsodium is compiled with hidden symbol visibility, so `crypto_pwhash` itself is not exported from the built addon; the wrappers live alongside sodium-native's own `sn__extension_*` helpers, which are exported the same way. CoMapeo uses this to derive a key natively with the exact same libsodium binary that the embedded Node.js runtime uses.
+
 ## Creating a release
 
 1. Navigate to the [Generate Prebuilds workflow](https://github.com/digidem/sodium-native-nodejs-mobile/actions/workflows/prebuilds.yml)
