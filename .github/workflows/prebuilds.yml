@@ -25,20 +25,20 @@ on:
 
 jobs:
   build:
-    uses: digidem/nodejs-mobile-bare-prebuilds/.github/workflows/prebuild-all.yml@v2
+    uses: digidem/nodejs-mobile-bare-prebuilds/.github/workflows/prebuild-all.yml@v3
     with:
       module_name: ${{ inputs.module_name }}
       module_version: ${{ inputs.module_version }}
 
   test-android:
     needs: build
-    uses: digidem/nodejs-mobile-bare-prebuilds/.github/workflows/test-android.yml@v2
+    uses: digidem/nodejs-mobile-bare-prebuilds/.github/workflows/test-android.yml@v3
     with:
       module_spec: ${{ needs.build.outputs.module_spec }}
 
   test-ios:
     needs: build
-    uses: digidem/nodejs-mobile-bare-prebuilds/.github/workflows/test-ios.yml@v2
+    uses: digidem/nodejs-mobile-bare-prebuilds/.github/workflows/test-ios.yml@v3
     with:
       module_spec: ${{ needs.build.outputs.module_spec }}
 
@@ -47,6 +47,6 @@ jobs:
     needs: [ build, test-android, test-ios ]
     permissions:
       contents: write
-    uses: digidem/nodejs-mobile-bare-prebuilds/.github/workflows/release.yml@v2
+    uses: digidem/nodejs-mobile-bare-prebuilds/.github/workflows/release.yml@v3
     with:
       module_spec: ${{ needs.build.outputs.module_spec }}
